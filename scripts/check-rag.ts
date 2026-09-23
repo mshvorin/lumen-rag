@@ -1,0 +1,12 @@
+import assert from "node:assert/strict";
+import {chunkPages,cosine,rank} from "../lib/rag.ts";
+const text=Array.from({length:1200},(_,i)=>`word${i}`).join(" ");
+const chunks=chunkPages([{text,page:2},{text:"Final page",page:3}]);
+assert(chunks.length>3);assert(chunks.every(c=>c.content.length<=1600));
+assert.equal(chunks.at(-1)?.page,3);assert.equal(chunks[0].page,2);
+for(const word of text.split(" "))assert(chunks.some(c=>c.content.split(" ").includes(word)),`Missing ${word}`);
+assert.equal(cosine([1,0],[1,0]),1);assert.equal(cosine([1,0],[0,1]),0);assert.equal(cosine([0,0],[0,1]),0);
+const rows=[{id:1,embedding:"[0,1]"},{id:2,embedding:"[1,0]"},{id:3,embedding:"[0.8,0.6]"},{id:4,embedding:"[0.6,0.8]"}];
+assert.deepEqual(rank(rows,[1,0],.5).map(r=>r.id),[2,3,4]);assert.equal(rank(rows,[1,0],.9).length,1);
+assert.equal(rank(rows,[1,1],1).length,0);assert.equal(chunkPages([{text:"  ",page:null}]).length,0);
+assert.throws(()=>cosine([1],[1,0]));console.log("RAG checks passed: chunk coverage, page attribution, cosine ranking, top 3, and strict filtering.");
