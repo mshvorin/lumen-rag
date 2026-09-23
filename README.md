@@ -8,7 +8,7 @@ A private document workspace with real OpenAI embeddings, exact cosine retrieval
 2. Split text into passages of up to 1,600 characters with about 240 characters of overlap. PDF page numbers are preserved.
 3. Embed passages with `text-embedding-3-small`, 512 dimensions, in batches of 32.
 4. Save original files in R2 and document metadata, passages, and vectors in D1. Duplicate files are detected by SHA-256. Re-uploading the same file with improved extracted text refreshes its index.
-5. Embed each question with the same model and dimensions. Calculate cosine similarity against the user's collection in bounded batches. Select up to three passages with scores at or above the chosen threshold (default 0.35).
+5. Embed each question with the same model and dimensions. Calculate cosine similarity against the user's collection in bounded batches. Select up to three passages with scores at or above the chosen threshold (default 0.30).
 6. Send those passages and the question to the OpenAI Responses API (`gpt-4.1-mini`, configurable with `OPENAI_MODEL`). The prompt treats source text as untrusted data and requests numbered citations. If no passages qualify, no generation request is made.
 7. Show the answer, source scores, and clickable original passages. Users can delete a file and its vectors.
 
@@ -40,7 +40,7 @@ node scripts/check-integration.mjs
 
 The integration check expects a local development server at `localhost:5173`, a migrated database, and the existing API key. It makes billable OpenAI requests, creates four uniquely named test documents, verifies a cited answer, then removes its own documents. It verifies authentication, upload persistence, deduplication, top-three retrieval, threshold behavior, input validation, origin validation, and deletion.
 
-Browser verification with the supplied hybrid PDF recovered 3,990 words into 26 passages. The original boiler-pressure question retrieved the relevant definitions on PDF page 4 with cosine similarity 0.562 at a 0.50 threshold. The source inspector showed both the low-pressure maximum and high-pressure boundary. The short question “What is a burner?” retrieved its page 5 definition at 0.311, which requires lowering the user-selected default threshold of 0.35 to 0.30. The manual itself is not included in this source package.
+Browser verification with the supplied hybrid PDF recovered 3,990 words into 26 passages. The original boiler-pressure question retrieved the relevant definitions on PDF page 4 with cosine similarity 0.562 at a 0.50 threshold. The source inspector showed both the low-pressure maximum and high-pressure boundary. The short question “What is a burner?” retrieved its page 5 definition at 0.311, which is retained by the default threshold of 0.30. The manual itself is not included in this source package.
 
 ## Deliberate limits
 
