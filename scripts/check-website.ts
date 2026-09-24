@@ -1,0 +1,15 @@
+import assert from "node:assert/strict";
+import {extractWebsite,inScope,publicAddress,robotPolicy,websiteUrl} from "../lib/website.ts";
+for(const input of ["https://127.0.0.1","https://[::1]","http://example.com","https://user:pass@example.com","https://example.com:8443","https://x.local","https://2130706433","file:///etc/passwd"])assert.throws(()=>websiteUrl(input),input);
+for(const address of ["127.0.0.1","10.0.0.1","169.254.169.254","172.16.2.3","192.168.0.1","100.64.0.1","::1","fe80::1","fc00::1","::ffff:127.0.0.1"])assert.equal(publicAddress(address),false,address);
+assert.equal(publicAddress("1.1.1.1"),true);
+assert.equal(websiteUrl("example.com/a?utm_source=test&b=2#part").href,"https://example.com/a?b=2");
+const root=websiteUrl("https://example.com/docs");assert(inScope(websiteUrl("https://www.example.com/docs/intro"),root,true));assert(!inScope(websiteUrl("https://evil.example.com/docs/intro"),root,true));assert(!inScope(websiteUrl("https://example.com/docstuff"),root,true));
+assert.throws(()=>robotPolicy("User-agent: *\nDisallow: /docs",root));
+assert.equal(robotPolicy("User-agent: *\nDisallow: /\nAllow: /docs\nCrawl-delay: 2",root),2);
+const text="A burner is the boiler component responsible for heating water to create steam. The operating pressure must follow the manufacturer's specifications.";
+const page=extractWebsite(`<html><head><title>Boiler &amp; heating</title><script>secret script</script></head><body><nav>Navigation noise</nav><main><h1>Boilers</h1><p>${text}</p><a href='/docs/next#one'>Next</a><a href='/docs/next#two'>Again</a><a href='https://elsewhere.com/docs'>Outside</a><a href='/docs/file.pdf'>PDF</a><a href='/docs/secret' rel='nofollow'>Hidden link</a></main><footer>Footer noise</footer></body></html>`,root,root,true);
+assert.equal(page.title,"Boiler & heating");assert(page.text.includes(text));assert(!page.text.includes("Navigation noise"));assert(!page.text.includes("secret script"));assert(!page.text.includes("Footer noise"));assert.deepEqual(page.links,["https://example.com/docs/next"]);
+assert.throws(()=>extractWebsite(`<meta name='robots' content='noindex'><main>${text}</main>`,root,root,false));
+assert.equal(extractWebsite(`<main>${"x".repeat(61000)}</main>`,root,root,false).text.length,60000);
+console.log("Website checks passed: URL/private-network filtering, scope, robots directives, HTML extraction, link deduplication, and size cap.");

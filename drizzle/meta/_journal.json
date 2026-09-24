@@ -8,6 +8,13 @@
       "when": 1790174608486,
       "tag": "0000_elite_franklin_storm",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1790186563199,
+      "tag": "0001_marvelous_radioactive_man",
+      "breakpoints": true
     }
   ]
 }
